@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace="com.baizhi.dao.UserDAO">
+
+
+    <select id="findUserByUsername" resultType="User">
+        SELECT
+            id,
+            username,
+            password,
+            salt,
+            status
+        FROM
+            s_user
+        where
+            username = #{username}
+    </select>
+
+    <select id="findRolesByUsername" resultType="Role">
+        SELECT
+            id,
+            role_name roleName,
+            role_tag roleTag
+        FROM
+            s_role
+        WHERE
+            id IN (
+                SELECT
+                    role_id
+                FROM
+                    s_user_role
+                WHERE
+                    user_id = (
+                        SELECT
+                            id
+                        FROM
+                            s_user
+                        WHERE
+                            username = #{username}
+                    )
+            )
+    </select>
+
+    <select id="findPermissionsByUsername" resultType="Permission">
+        SELECT
+            id,
+            resource_name resourceName,
+            resource_tag resourceTag,
+            resource_url resourceUrl,
+            permission_tag permissionTag
+        FROM
+            s_permission
+        WHERE
+            id IN (
+                SELECT
+                    permission_id
+                FROM
+                    s_role_permission
+                WHERE
+                    role_id IN (
+                        SELECT
+                            id
+                        FROM
+                            s_role
+                        WHERE
+                            id IN (
+                                SELECT
+                                    role_id
+                                FROM
+                                    s_user_role
+                                WHERE
+                                    user_id = (
+                                        SELECT
+                                            id
+                                        FROM
+                                            s_user
+                                        WHERE
+                                            username = #{username}
+                                    )
+                            )
+                    )
+            )
+    </select>
+</mapper>
